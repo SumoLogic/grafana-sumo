@@ -21,12 +21,12 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
   this.withCredentials = instanceSettings.withCredentials;
   this.lastErrors = {};
 
-  this._request = function(method, url, requestId) {
+  this._request = function(method, url, requestId, data) {
     var options: any = {
       url: this.url + url,
       method: method,
       requestId: requestId,
-      data: {},
+      data: data,
     };
 
     if (this.basicAuth || this.withCredentials) {

@@ -70,9 +70,9 @@ function (_) {
   };
 
   PrometheusMetricFindQuery.prototype.metricNameQuery = function(metricFilterPattern) {
-    //var url = '/api/v1/collectors?limit=2';
     var url = '/api/v1/metrics/results';
-    return this.datasource._request('POST', url)
+    var data = {};
+    return this.datasource._request('POST', url, data)
     .then(function(result) {
       return _.chain(result.data.data)
       .filter(function(metricName) {
