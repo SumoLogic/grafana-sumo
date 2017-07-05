@@ -72,7 +72,7 @@ function (_) {
   PrometheusMetricFindQuery.prototype.metricNameQuery = function(metricFilterPattern) {
     var url = '/api/v1/metrics/results';
     var data = {};
-    return this.datasource._request('POST', url, data)
+    return this.datasource._request('POST', url, null, data)
     .then(function(result) {
       return _.chain(result.data.data)
       .filter(function(metricName) {

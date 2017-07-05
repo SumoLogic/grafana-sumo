@@ -133,7 +133,11 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
       throw { message: 'Invalid time range' };
     }
 
-    var url = '/api/v1/query_range?query=' + encodeURIComponent(query.expr) + '&start=' + start + '&end=' + end + '&step=' + query.step;
+    //var url = '/api/v1/query_range?query=' + encodeURIComponent(query.expr) + '&start=' + start + '&end=' + end + '&step=' + query.step;
+    var url = '/api/v1/metrics/results';
+    console.log("Query is:", query.expr);
+    console.log(start,end);
+    console.log(query.step);
     return this._request('GET', url, query.requestId);
   };
 

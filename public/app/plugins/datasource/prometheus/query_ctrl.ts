@@ -72,7 +72,6 @@ class PrometheusQueryCtrl extends QueryCtrl {
       stacked: this.panelCtrl.panel.stack,
       tab: 0
     };
-    console.log(expr)
     var hash = encodeURIComponent(JSON.stringify([expr]));
     this.linkToPrometheus = this.datasource.directUrl + '/graph#' + hash;
   }
