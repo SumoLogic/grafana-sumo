@@ -51,8 +51,8 @@ function (_) {
         });
       });
     } else {
-      var start = this.datasource.getPrometheusTime(this.range.from, false);
-      var end = this.datasource.getPrometheusTime(this.range.to, true);
+      var start = this.datasource.getTime(this.range.from, false);
+      var end = this.datasource.getTime(this.range.to, true);
       url = '/api/v1/series?match[]=' + encodeURIComponent(metric)
         + '&start=' + start
         + '&end=' + end;
@@ -90,7 +90,7 @@ function (_) {
   };
 
   PrometheusMetricFindQuery.prototype.queryResultQuery = function(query) {
-    var end = this.datasource.getPrometheusTime(this.range.to, true);
+    var end = this.datasource.getTime(this.range.to, true);
     var url = '/api/v1/query?query=' + encodeURIComponent(query) + '&time=' + end;
 
     return this.datasource._request('GET', url)
@@ -112,8 +112,8 @@ function (_) {
   };
 
   PrometheusMetricFindQuery.prototype.metricNameAndLabelsQuery = function(query) {
-    var start = this.datasource.getPrometheusTime(this.range.from, false);
-    var end = this.datasource.getPrometheusTime(this.range.to, true);
+    var start = this.datasource.getTime(this.range.from, false);
+    var end = this.datasource.getTime(this.range.to, true);
     var url = '/api/v1/series?match[]=' + encodeURIComponent(query)
       + '&start=' + start
       + '&end=' + end;

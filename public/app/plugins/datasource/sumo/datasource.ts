@@ -68,8 +68,8 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
   // Called once per panel (graph)
   this.query = function(options) {
     var self = this;
-    var start = this.getPrometheusTime(options.range.from, false)*1000;
-    var end = this.getPrometheusTime(options.range.to, true)*1000;
+    var start = this.getTime(options.range.from, false)*1000;
+    var end = this.getTime(options.range.to, true)*1000;
     var maxDataPoints = options.maxDataPoints;
     var queries = [];
     var activeTargets = [];
@@ -91,12 +91,9 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
       var intervalFactor = target.intervalFactor || 1;
       target.step = query.step = this.calculateInterval(interval, intervalFactor);
       var range = Math.ceil(end - start);
-      // Prometheus drop query if range/step > 11000
-      // calibrate step if it is too big
       if (query.step !== 0 && range / query.step > 11000) {
         target.step = query.step = Math.ceil(range / 11000);
       }
-
       queries.push(query);
     });
 
@@ -125,7 +122,6 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
     });
   };
 
-  // Almost done, minus the step
   this.performTimeSeriesQuery = function(queries, start, end, maxDataPoints) {
     if (start > end) {
       throw { message: 'Invalid time range' };
@@ -142,18 +138,21 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
       'query': queryList,
       'startTime': start,
       'endTime': end,
-      //step??
       "maxDataPoints": maxDataPoints,
     };
     return this._request('POST', url, null, data);
   };
 
   this.performSuggestQuery = function(query) {
-    var url = '/api/v1/label/__name__/values';
-
-    return this._request('GET', url).then(function(result) {
-      return _.filter(result.data.data, function (metricName) {
-        return metricName.indexOf(query) !== 1;
+    var url = '/api/v1/metrics/dimensions/suggest/key';
+    var data = {
+      query: query,
+      dimensions: []
+    };
+    return this._request('POST', url, null, data).then(function(result) {
+      console.log('here');
+      return _.map(result.data.suggestions, function (suggestion) {
+          return suggestion.text;
       });
     });
   };
@@ -200,7 +199,7 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
         console.log("SumoMetricsDatasource.query -  " +
           "WARN: message: " + response.message + ", type: " + response.messageType +
           " for response[" + i + "]");
-        continue; // TODO: How to display warning??
+        continue; // TODO: How to display warning?
       }
       for (var j = 0; j < response.results.length; j++) {
         var result = response.results[j];
@@ -237,14 +236,6 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
     return seriesList;
   };
 
-  this.createMetricLabel = function(labelData, options) {
-    if (_.isUndefined(options) || _.isEmpty(options.legendFormat)) {
-      return this.getOriginalMetricName(labelData);
-    }
-
-    return this.renderTemplate(templateSrv.replace(options.legendFormat), labelData) || '{}';
-  };
-
   this.renderTemplate = function(aliasPattern, aliasData) {
     var aliasRegex = /\{\{\s*(.+?)\s*\}\}/g;
     return aliasPattern.replace(aliasRegex, function(match, g1) {
@@ -264,7 +255,7 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
     return metricName + '{' + labelPart + '}';
   };
 
-  this.getPrometheusTime = function(date, roundUp) {
+  this.getTime = function(date, roundUp) {
     if (_.isString(date)) {
       date = dateMath.parse(date, roundUp);
     }
