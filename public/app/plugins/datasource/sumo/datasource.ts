@@ -12,7 +12,7 @@ var durationSplitRegexp = /(\d+)(ms|s|m|h|d|w|M|y)/;
 /** @ngInject */
 export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateSrv, timeSrv) {
   this.type = 'prometheus';
-  this.editorSrc = 'app/features/prometheus/partials/query.editor.html';
+  //this.editorSrc = 'app/features/prometheus/partials/query.editor.html';
   this.name = instanceSettings.name;
   this.supportMetrics = true;
   this.url = instanceSettings.url;
@@ -21,6 +21,7 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
   this.withCredentials = instanceSettings.withCredentials;
   this.lastErrors = {};
 
+  // Done
   this._request = function(method, url, requestId, data) {
     var options: any = {
       url: this.url + url,
@@ -67,9 +68,9 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
   // Called once per panel (graph)
   this.query = function(options) {
     var self = this;
-    var start = this.getPrometheusTime(options.range.from, false);
-    var end = this.getPrometheusTime(options.range.to, true);
-
+    var start = this.getPrometheusTime(options.range.from, false)*1000;
+    var end = this.getPrometheusTime(options.range.to, true)*1000;
+    var maxDataPoints = options.maxDataPoints;
     var queries = [];
     var activeTargets = [];
 
@@ -107,62 +108,41 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
     }
 
     var allQueryPromise = _.map(queries, query => {
-      return this.performTimeSeriesQuery(query, start, end);
+      return this.performTimeSeriesQuery(query, start, end, maxDataPoints);
     });
 
     return $q.all(allQueryPromise).then(function(allResponse) {
       var result = [];
-
+      console.log('Response',allResponse);
       _.each(allResponse, function(response, index) {
         if (response.status === 'error') {
           self.lastErrors.query = response.error;
           throw response.error;
         }
         delete self.lastErrors.query;
-        _.each(response.data.data.result, function(metricData) {
-          result.push(self.transformMetricData(metricData, activeTargets[index], start, end));
-        });
+        result = self.transformMetricData(response.data.response);
       });
 
       return { data: result };
     });
   };
 
-  this.performTimeSeriesQuery = function(query, start, end) {
+  // Almost done, minus the step
+  this.performTimeSeriesQuery = function(query, start, end, maxDataPoints) {
     if (start > end) {
       throw { message: 'Invalid time range' };
     }
-
-    //var url = '/api/v1/query_range?query=' + encodeURIComponent(query.expr) + '&start=' + start + '&end=' + end + '&step=' + query.step;
     var url = '/api/v1/metrics/results';
-    console.log(start,end);
-    console.log(query);
     var data = {
       'query': [{'query': query.expr,'rowId': query.requestId}],
       'startTime': start,
       'endTime': end,
-      'requestedDataPoints': 600,
-      "maxDataPoints": 800
+      //step???
+      "maxDataPoints": maxDataPoints,
     };
     return this._request('POST', url, query.requestId, data);
   };
 
-  /* private fetchSuggestions = (data): IPromise<any> => {
-   return this.metricsQueryRowNetworkService.getTakahashiAutocomplete(_.omit(data, 'filter'))
-   .then((response) => {
-   let items;
-   const section = _.find(_.getPath(response, 'suggestions'),
-   (suggestion: any) => suggestion.sectionType === this.sectionType);
-   if (!_.isUndefined(section)) {
-   items = section.items;
-   }
-
-   return {
-   items: _.values(_.indexBy(items, 'display')), // Get rid of duplicates
-   filter: data.filter,
-   };
-   });
-   };*/
   this.performSuggestQuery = function(query) {
     var url = '/api/v1/label/__name__/values';
 
@@ -187,60 +167,6 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
     return metricFindQuery.process();
   };
 
-  this.annotationQuery = function(options) {
-    var annotation = options.annotation;
-    var expr = annotation.expr || '';
-    var tagKeys = annotation.tagKeys || '';
-    var titleFormat = annotation.titleFormat || '';
-    var textFormat = annotation.textFormat || '';
-
-    if (!expr) { return $q.when([]); }
-
-    var interpolated;
-    try {
-      interpolated = templateSrv.replace(expr, {}, this.interpolateQueryExpr);
-    } catch (err) {
-      return $q.reject(err);
-    }
-
-    var query = {
-      expr: interpolated,
-      step: '60s'
-    };
-
-    var start = this.getPrometheusTime(options.range.from, false);
-    var end = this.getPrometheusTime(options.range.to, true);
-    var self = this;
-
-    return this.performTimeSeriesQuery(query, start, end).then(function(results) {
-      var eventList = [];
-      tagKeys = tagKeys.split(',');
-
-      _.each(results.data.data.result, function(series) {
-        var tags = _.chain(series.metric)
-        .filter(function(v, k) {
-          return _.includes(tagKeys, k);
-        }).value();
-
-        _.each(series.values, function(value) {
-          if (value[1] === '1') {
-            var event = {
-              annotation: annotation,
-              time: Math.floor(value[0]) * 1000,
-              title: self.renderTemplate(titleFormat, series.metric),
-              tags: tags,
-              text: self.renderTemplate(textFormat, series.metric)
-            };
-
-            eventList.push(event);
-          }
-        });
-      });
-
-      return eventList;
-    });
-  };
-
   this.testDatasource = function() {
     return this.metricFindQuery('metrics(.*)').then(function() {
       return { status: 'success', message: 'Data source is working', title: 'Success' };
@@ -258,34 +184,52 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
     return Math.ceil(sec * intervalFactor);
   };
 
-  this.transformMetricData = function(md, options, start, end) {
-    var dps = [],
-      metricLabel = null;
+  this.transformMetricData = function(responses) {
 
-    metricLabel = this.createMetricLabel(md.metric, options);
+    var seriesList = [];
 
-    var stepMs = parseInt(options.step) * 1000;
-    var baseTimestamp = start * 1000;
-    _.each(md.values, function(value) {
-      var dp_value = parseFloat(value[1]);
-      if (_.isNaN(dp_value)) {
-        dp_value = null;
+    for (var i = 0; i < responses.length; i++) {
+      var response = responses[i];
+
+      if (response.messageType) {
+        console.log("SumoMetricsDatasource.query -  " +
+          "WARN: message: " + response.message + ", type: " + response.messageType +
+          " for response[" + i + "]");
+        continue; // TODO: How to display warning??
       }
+      for (var j = 0; j < response.results.length; j++) {
+        var result = response.results[j];
 
-      var timestamp = value[0] * 1000;
-      for (var t = baseTimestamp; t < timestamp; t += stepMs) {
-        dps.push([null, t]);
+        // Synthesize the "target" - the "metric name" basically.
+        var target = "";
+        var dimensions = result.metric.dimensions;
+        for (var k = 0; k < dimensions.length; k++) {
+          var dimension = dimensions[k];
+          target += dimension.key + "=" + dimension.value;
+          if (k !== dimensions.length - 1) {
+            target += ",";
+          }
+        }
+
+        // Create Grafana-suitable datapoints.
+        var values = result.datapoints.value;
+        var timestamps = result.datapoints.timestamp;
+        var length = Math.min(values.length, timestamps.length);
+        var datapoints = [];
+        for (var l = 0; l < length; l++) {
+          var value = values[l];
+          var valueParsed = parseFloat(value);
+          var timestamp = timestamps[l];
+          var timestampParsed = parseFloat(timestamp);
+          datapoints.push([valueParsed, timestampParsed]);
+        }
+
+        // Add the series.
+        seriesList.push({target: target, datapoints: datapoints});
       }
-      baseTimestamp = timestamp + stepMs;
-      dps.push([dp_value, timestamp]);
-    });
-
-    var endTimestamp = end * 1000;
-    for (var t = baseTimestamp; t <= endTimestamp; t += stepMs) {
-      dps.push([null, t]);
     }
 
-    return { target: metricLabel, datapoints: dps };
+    return seriesList;
   };
 
   this.createMetricLabel = function(labelData, options) {
