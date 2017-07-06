@@ -107,9 +107,7 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
       return d.promise;
     }
 
-    var allQueryPromise = _.map(queries, query => {
-      return this.performTimeSeriesQuery(query, start, end, maxDataPoints);
-    });
+    var allQueryPromise = [this.performTimeSeriesQuery(queries, start, end, maxDataPoints)]; //TODO: fix list (should not be a list)
 
     return $q.all(allQueryPromise).then(function(allResponse) {
       var result = [];
@@ -128,19 +126,26 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
   };
 
   // Almost done, minus the step
-  this.performTimeSeriesQuery = function(query, start, end, maxDataPoints) {
+  this.performTimeSeriesQuery = function(queries, start, end, maxDataPoints) {
     if (start > end) {
       throw { message: 'Invalid time range' };
     }
+    var queryList = [];
+    for (var i = 0; i<queries.length; i++){
+      queryList.push({
+          'query': queries[i].expr,
+          'rowId': queries[i].requestId,
+      });
+    }
     var url = '/api/v1/metrics/results';
     var data = {
-      'query': [{'query': query.expr,'rowId': query.requestId}],
+      'query': queryList,
       'startTime': start,
       'endTime': end,
-      //step???
+      //step??
       "maxDataPoints": maxDataPoints,
     };
-    return this._request('POST', url, query.requestId, data);
+    return this._request('POST', url, null, data);
   };
 
   this.performSuggestQuery = function(query) {
