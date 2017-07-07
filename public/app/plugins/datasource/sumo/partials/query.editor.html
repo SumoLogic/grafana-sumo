@@ -19,7 +19,7 @@
 			</input>
 		</div>
 		<div class="gf-form">
-			<label class="gf-form-label width-5">Step</label>
+			<label class="gf-form-label width-8">Resolution</label>
 			<input type="text" class="gf-form-input max-width-5" ng-model="ctrl.target.interval"
 					   data-placement="right"
 			       spellcheck='false'
@@ -30,15 +30,6 @@
 			<info-popover mode="right-absolute">
 				Leave blank for auto handling based on time range and panel width
 			</info-popover>
-		</div>
-		<div class="gf-form">
-			<label class="gf-form-label">Resolution</label>
-			<div class="gf-form-select-wrapper max-width-15">
-				<select ng-model="ctrl.target.intervalFactor" class="gf-form-input"
-					ng-options="r.factor as r.label for r in ctrl.resolutions"
-					ng-change="ctrl.refreshMetricData()">
-				</select>
-			</div>
 		</div>
 
 		<div class="gf-form gf-form--grow">

@@ -22,11 +22,10 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
   this.lastErrors = {};
 
   // Done
-  this._request = function(method, url, requestId, data) {
+  this._request = function(method, url, data) {
     var options: any = {
       url: this.url + url,
       method: method,
-      requestId: requestId,
       data: data,
     };
 
@@ -71,6 +70,7 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
     var start = this.getTime(options.range.from, false)*1000;
     var end = this.getTime(options.range.to, true)*1000;
     var maxDataPoints = options.maxDataPoints;
+    var minDesiredQuantization = Infinity;
     var queries = [];
     var activeTargets = [];
 
@@ -88,12 +88,8 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
       query.requestId = options.panelId + target.refId;
 
       var interval = templateSrv.replace(target.interval, options.scopedVars) || options.interval;
-      var intervalFactor = target.intervalFactor || 1;
-      target.step = query.step = this.calculateInterval(interval, intervalFactor);
-      var range = Math.ceil(end - start);
-      if (query.step !== 0 && range / query.step > 11000) {
-        target.step = query.step = Math.ceil(range / 11000);
-      }
+      interval = this.calculateInterval(interval);
+      minDesiredQuantization = minDesiredQuantization > interval? interval: minDesiredQuantization;
       queries.push(query);
     });
 
@@ -104,11 +100,11 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
       return d.promise;
     }
 
-    var allQueryPromise = [this.performTimeSeriesQuery(queries, start, end, maxDataPoints)]; //TODO: fix list (should not be a list)
+    var allQueryPromise = [this.performTimeSeriesQuery(queries, start, end, maxDataPoints, minDesiredQuantization)];
+    //TODO: fix list (should not be a list)
 
     return $q.all(allQueryPromise).then(function(allResponse) {
       var result = [];
-      console.log('Response',allResponse);
       _.each(allResponse, function(response, index) {
         if (response.status === 'error') {
           self.lastErrors.query = response.error;
@@ -122,7 +118,7 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
     });
   };
 
-  this.performTimeSeriesQuery = function(queries, start, end, maxDataPoints) {
+  this.performTimeSeriesQuery = function(queries, start, end, maxDataPoints, minDesiredQuantization) {
     if (start > end) {
       throw { message: 'Invalid time range' };
     }
@@ -140,17 +136,20 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
       'endTime': end,
       "maxDataPoints": maxDataPoints,
     };
-    return this._request('POST', url, null, data);
+    if (minDesiredQuantization !== Infinity){
+      data['desiredQuantizationInSecs'] = minDesiredQuantization;
+    }
+    return this._request('POST', url, data);
   };
 
   this.performSuggestQuery = function(query) {
-    var url = '/api/v1/metrics/dimensions/suggest/key';
+    //var url = '/api/v1/metrics/dimensions/suggest/key';
+    var url = '/api/v1/metrics/suggest/autocomplete';
     var data = {
       query: query,
-      dimensions: []
+      //dimensions: []
     };
-    return this._request('POST', url, null, data).then(function(result) {
-      console.log('here');
+    return this._request('POST', url, data).then(function(result) {
       return _.map(result.data.suggestions, function (suggestion) {
           return suggestion.text;
       });
@@ -177,7 +176,7 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
     });
   };
 
-  this.calculateInterval = function(interval, intervalFactor) {
+  this.calculateInterval = function(interval) {
     var m = interval.match(durationSplitRegexp);
     var dur = moment.duration(parseInt(m[1]), m[2]);
     var sec = dur.asSeconds();
@@ -185,7 +184,7 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
       sec = 1;
     }
 
-    return Math.ceil(sec * intervalFactor);
+    return Math.ceil(sec);
   };
 
   this.transformMetricData = function(responses) {
