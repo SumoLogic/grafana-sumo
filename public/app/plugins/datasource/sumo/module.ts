@@ -1,13 +1,12 @@
-import {PrometheusDatasource} from './datasource';
-import {PrometheusQueryCtrl} from './query_ctrl';
+import {SumoDatasource} from './datasource';
+import {SumoQueryCtrl} from './query_ctrl';
 
-class PrometheusConfigCtrl {
+class SumoConfigCtrl {
   static templateUrl = 'partials/config.html';
 }
 
-
 export {
-  PrometheusDatasource as Datasource,
-  PrometheusQueryCtrl as QueryCtrl,
-  PrometheusConfigCtrl as ConfigCtrl,
+  SumoDatasource as Datasource,
+  SumoQueryCtrl as QueryCtrl,
+  SumoConfigCtrl as ConfigCtrl,
 };

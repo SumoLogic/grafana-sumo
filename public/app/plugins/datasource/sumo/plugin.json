@@ -16,8 +16,8 @@
       "url": "https://grafana.com"
     },
     "logos": {
-      "small": "img/prometheus_logo.svg",
-      "large": "img/prometheus_logo.svg"
+      "small": "img/sumo_logo.svg",
+      "large": "img/sumo_logo.svg"
     }
   }
 }

@@ -10,9 +10,8 @@ import PrometheusMetricFindQuery from './metric_find_query';
 var durationSplitRegexp = /(\d+)(ms|s|m|h|d|w|M|y)/;
 
 /** @ngInject */
-export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateSrv, timeSrv) {
-  this.type = 'prometheus';
-  //this.editorSrc = 'app/features/prometheus/partials/query.editor.html';
+export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, timeSrv) {
+  this.type = 'sumo';
   this.name = instanceSettings.name;
   this.supportMetrics = true;
   this.url = instanceSettings.url;
@@ -47,7 +46,7 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
   }
 
   this.interpolateQueryExpr = function(value, variable, defaultFormatFn) {
-    // if no multi or include all do not regexEscape
+    // if no multi or include all do not regexEscape. Is this needed?
     if (!variable.multi && !variable.includeAll) {
       return value;
     }
@@ -118,6 +117,7 @@ export function PrometheusDatasource(instanceSettings, $q, backendSrv, templateS
     });
   };
 
+  // Done
   this.performTimeSeriesQuery = function(queries, start, end, maxDataPoints, minDesiredQuantization) {
     if (start > end) {
       throw { message: 'Invalid time range' };

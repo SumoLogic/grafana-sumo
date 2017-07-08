@@ -1,7 +1,7 @@
 import {describe, beforeEach, it, sinon, expect, angularMocks} from 'test/lib/common';
 import moment from 'moment';
 import helpers from 'test/specs/helpers';
-import {PrometheusDatasource} from '../datasource';
+import {SumoDatasource} from '../datasource';
 import PrometheusMetricFindQuery from '../metric_find_query';
 
 describe('PrometheusMetricFindQuery', function() {
@@ -15,7 +15,7 @@ describe('PrometheusMetricFindQuery', function() {
     ctx.$q = $q;
     ctx.$httpBackend =  $httpBackend;
     ctx.$rootScope = $rootScope;
-    ctx.ds = $injector.instantiate(PrometheusDatasource, {instanceSettings: instanceSettings});
+    ctx.ds = $injector.instantiate(SumoDatasource, {instanceSettings: instanceSettings});
     $httpBackend.when('GET', /\.html$/).respond('');
   }));
 

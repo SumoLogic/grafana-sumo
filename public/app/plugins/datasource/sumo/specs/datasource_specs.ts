@@ -1,9 +1,9 @@
 import {describe, beforeEach, it, sinon, expect, angularMocks} from 'test/lib/common';
 import moment from 'moment';
 import helpers from 'test/specs/helpers';
-import {PrometheusDatasource} from '../datasource';
+import {SumoDatasource} from '../datasource';
 
-describe('PrometheusDatasource', function() {
+describe('SumoDatasource', function() {
   var ctx = new helpers.ServiceTestContext();
   var instanceSettings = {url: 'proxied', directUrl: 'direct', user: 'test', password: 'mupp' };
 
@@ -15,7 +15,7 @@ describe('PrometheusDatasource', function() {
     ctx.$q = $q;
     ctx.$httpBackend =  $httpBackend;
     ctx.$rootScope = $rootScope;
-    ctx.ds = $injector.instantiate(PrometheusDatasource, {instanceSettings: instanceSettings});
+    ctx.ds = $injector.instantiate(SumoDatasource, {instanceSettings: instanceSettings});
     $httpBackend.when('GET', /\.html$/).respond('');
   }));
 
