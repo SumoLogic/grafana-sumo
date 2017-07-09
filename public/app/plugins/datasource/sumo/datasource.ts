@@ -5,7 +5,7 @@ import _ from 'lodash';
 import moment from 'moment';
 
 import * as dateMath from 'app/core/utils/datemath';
-import PrometheusMetricFindQuery from './metric_find_query';
+import MetricFindQuery from './metric_find_query';
 
 var durationSplitRegexp = /(\d+)(ms|s|m|h|d|w|M|y)/;
 
@@ -41,7 +41,7 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
     return backendSrv.datasourceRequest(options);
   };
 
-  function prometheusSpecialRegexEscape(value) {
+  function specialRegexEscape(value) {
     return value.replace(/[\\^$*+?.()|[\]{}]/g, '\\\\$&');
   }
 
@@ -52,10 +52,10 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
     }
 
     if (typeof value === 'string') {
-      return prometheusSpecialRegexEscape(value);
+      return specialRegexEscape(value);
     }
 
-    var escapedValues = _.map(value, prometheusSpecialRegexEscape);
+    var escapedValues = _.map(value, specialRegexEscape);
     return escapedValues.join('|');
   };
 
@@ -166,7 +166,7 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
       return $q.reject(err);
     }
 
-    var metricFindQuery = new PrometheusMetricFindQuery(this, interpolated, timeSrv);
+    var metricFindQuery = new MetricFindQuery(this, interpolated, timeSrv);
     return metricFindQuery.process();
   };
 

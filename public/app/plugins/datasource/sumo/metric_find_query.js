@@ -4,13 +4,13 @@ define([
 function (_) {
   'use strict';
 
-  function PrometheusMetricFindQuery(datasource, query, timeSrv) {
+  function MetricFindQuery(datasource, query, timeSrv) {
     this.datasource = datasource;
     this.query = query;
     this.range = timeSrv.timeRange();
   }
 
-  PrometheusMetricFindQuery.prototype.process = function() {
+  MetricFindQuery.prototype.process = function() {
     var label_values_regex = /^label_values\((?:(.+),\s*)?([a-zA-Z_][a-zA-Z0-9_]+)\)$/;
     var metric_names_regex = /^metrics\((.+)\)$/;
     var query_result_regex = /^query_result\((.+)\)$/;
@@ -38,7 +38,7 @@ function (_) {
     return this.metricNameAndLabelsQuery(this.query);
   };
 
-  PrometheusMetricFindQuery.prototype.labelValuesQuery = function(label, metric) {
+  MetricFindQuery.prototype.labelValuesQuery = function(label, metric) {
     var url;
 
     if (!metric) {
@@ -69,7 +69,7 @@ function (_) {
     }
   };
 
-  PrometheusMetricFindQuery.prototype.metricNameQuery = function(metricFilterPattern) {
+  MetricFindQuery.prototype.metricNameQuery = function(metricFilterPattern) {
     var url = '/api/v1/metrics/results';
     var data = {};
     return this.datasource._request('POST', url, data)
@@ -89,7 +89,7 @@ function (_) {
     });
   };
 
-  PrometheusMetricFindQuery.prototype.queryResultQuery = function(query) {
+  MetricFindQuery.prototype.queryResultQuery = function(query) {
     var end = this.datasource.getTime(this.range.to, true);
     var url = '/api/v1/query?query=' + encodeURIComponent(query) + '&time=' + end;
 
@@ -111,7 +111,7 @@ function (_) {
     });
   };
 
-  PrometheusMetricFindQuery.prototype.metricNameAndLabelsQuery = function(query) {
+  MetricFindQuery.prototype.metricNameAndLabelsQuery = function(query) {
     var start = this.datasource.getTime(this.range.from, false);
     var end = this.datasource.getTime(this.range.to, true);
     var url = '/api/v1/series?match[]=' + encodeURIComponent(query)
@@ -130,5 +130,5 @@ function (_) {
     });
   };
 
-  return PrometheusMetricFindQuery;
+  return MetricFindQuery;
 });

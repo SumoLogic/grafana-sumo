@@ -2,9 +2,9 @@ import {describe, beforeEach, it, sinon, expect, angularMocks} from 'test/lib/co
 import moment from 'moment';
 import helpers from 'test/specs/helpers';
 import {SumoDatasource} from '../datasource';
-import PrometheusMetricFindQuery from '../metric_find_query';
+import MetricFindQuery from '../metric_find_query';
 
-describe('PrometheusMetricFindQuery', function() {
+describe('MetricFindQuery', function() {
 
   var ctx = new helpers.ServiceTestContext();
   var instanceSettings = {url: 'proxied', directUrl: 'direct', user: 'test', password: 'mupp' };
@@ -28,7 +28,7 @@ describe('PrometheusMetricFindQuery', function() {
         data: ["value1", "value2", "value3"]
       };
       ctx.$httpBackend.expect('GET', 'proxied/api/v1/label/resource/values').respond(response);
-      var pm = new PrometheusMetricFindQuery(ctx.ds, 'label_values(resource)', ctx.timeSrv);
+      var pm = new MetricFindQuery(ctx.ds, 'label_values(resource)', ctx.timeSrv);
       pm.process().then(function(data) { results = data; });
       ctx.$httpBackend.flush();
       ctx.$rootScope.$apply();
@@ -44,7 +44,7 @@ describe('PrometheusMetricFindQuery', function() {
         ]
       };
       ctx.$httpBackend.expect('GET', /proxied\/api\/v1\/series\?match\[\]=metric&start=.*&end=.*/).respond(response);
-      var pm = new PrometheusMetricFindQuery(ctx.ds, 'label_values(metric, resource)', ctx.timeSrv);
+      var pm = new MetricFindQuery(ctx.ds, 'label_values(metric, resource)', ctx.timeSrv);
       pm.process().then(function(data) { results = data; });
       ctx.$httpBackend.flush();
       ctx.$rootScope.$apply();
@@ -54,7 +54,7 @@ describe('PrometheusMetricFindQuery', function() {
       ctx.timeSrv.setTime({ from: moment.utc('2011-01-01'), to: moment.utc('2015-01-01') });
       ctx.$httpBackend.expect('GET',
         /proxied\/api\/v1\/series\?match\[\]=metric&start=1293840000&end=1420070400/).respond(response);
-      var pm = new PrometheusMetricFindQuery(ctx.ds, 'label_values(metric, resource)', ctx.timeSrv);
+      var pm = new MetricFindQuery(ctx.ds, 'label_values(metric, resource)', ctx.timeSrv);
       pm.process().then(function(data) { results = data; });
       ctx.$httpBackend.flush();
       ctx.$rootScope.$apply();
@@ -69,7 +69,7 @@ describe('PrometheusMetricFindQuery', function() {
         ]
       };
       ctx.$httpBackend.expect('GET', /proxied\/api\/v1\/series\?match\[\]=metric&start=.*&end=.*/).respond(response);
-      var pm = new PrometheusMetricFindQuery(ctx.ds, 'label_values(metric, resource)', ctx.timeSrv);
+      var pm = new MetricFindQuery(ctx.ds, 'label_values(metric, resource)', ctx.timeSrv);
       pm.process().then(function(data) { results = data; });
       ctx.$httpBackend.flush();
       ctx.$rootScope.$apply();
@@ -81,7 +81,7 @@ describe('PrometheusMetricFindQuery', function() {
         data: ["metric1","metric2","metric3","nomatch"]
       };
       ctx.$httpBackend.expect('GET', 'proxied/api/v1/label/__name__/values').respond(response);
-      var pm = new PrometheusMetricFindQuery(ctx.ds, 'metrics(metric.*)', ctx.timeSrv);
+      var pm = new MetricFindQuery(ctx.ds, 'metrics(metric.*)', ctx.timeSrv);
       pm.process().then(function(data) { results = data; });
       ctx.$httpBackend.flush();
       ctx.$rootScope.$apply();
@@ -99,7 +99,7 @@ describe('PrometheusMetricFindQuery', function() {
         }
       };
       ctx.$httpBackend.expect('GET', /proxied\/api\/v1\/query\?query=metric&time=.*/).respond(response);
-      var pm = new PrometheusMetricFindQuery(ctx.ds, 'query_result(metric)', ctx.timeSrv);
+      var pm = new MetricFindQuery(ctx.ds, 'query_result(metric)', ctx.timeSrv);
       pm.process().then(function(data) { results = data; });
       ctx.$httpBackend.flush();
       ctx.$rootScope.$apply();

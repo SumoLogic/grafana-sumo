@@ -1,6 +1,6 @@
 {
   "type": "datasource",
-  "name": "Sumo",
+  "name": "Sumo Logic",
   "id": "sumo",
 
   "includes": [
