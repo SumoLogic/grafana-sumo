@@ -147,6 +147,7 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
     var url = '/api/v1/metrics/suggest/autocomplete';
     var data = {
       query: query,
+      pos: query.length
       //dimensions: []
     };
     return this._request('POST', url, data).then(function(result) {

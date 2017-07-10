@@ -10,6 +10,8 @@ class SumoQueryCtrl extends QueryCtrl {
   metric: any;
   oldTarget: any;
   suggestMetrics: any;
+  cursorPosition: number = -1;
+  selectionEnd: number = -1;
 
   /** @ngInject */
   constructor($scope, $injector, private templateSrv) {
@@ -33,9 +35,29 @@ class SumoQueryCtrl extends QueryCtrl {
     // called from typeahead so need this
     // here in order to ensure this ref
     this.suggestMetrics = (query, callback) => {
-      this.datasource.performSuggestQuery(query).then(callback);
+      this.datasource.performSuggestQuery(query.substring(0,this.selectionEnd)).then(callback);
     };
   }
+
+  getCursorPos($event) {
+    var myEl = $event.target;
+    this.doGetCaretPosition(myEl);
+  };
+
+  doGetCaretPosition(oField) {
+    var iCaretPos = 0;
+    if (navigator.appName === 'Microsoft Internet Explorer') {
+      oField.focus();
+      var oSel = oField.createTextRange();
+      oSel.moveStart('character', -oField.value.length);
+      iCaretPos = oSel.text.length;
+    } else if (oField.selectionStart || oField.selectionStart === '0') {
+      iCaretPos = oField.selectionStart;
+      this.selectionEnd = oField.selectionEnd;
+    }
+
+  this.cursorPosition = iCaretPos;
+};
 
   refreshMetricData() {
     if (!_.isEqual(this.oldTarget, this.target)) {
