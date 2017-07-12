@@ -19,6 +19,8 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
   this.basicAuth = instanceSettings.basicAuth;
   this.withCredentials = instanceSettings.withCredentials;
   this.lastErrors = {};
+  this.start;
+  this.end;
 
   // Done
   this._request = function(method, url, data) {
@@ -66,8 +68,8 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
   // Called once per panel (graph)
   this.query = function(options) {
     var self = this;
-    var start = this.getTime(options.range.from, false)*1000;
-    var end = this.getTime(options.range.to, true)*1000;
+    this.start = this.getTime(options.range.from, false);
+    this.end = this.getTime(options.range.to, true);
     var maxDataPoints = options.maxDataPoints;
     var minDesiredQuantization = Infinity;
     var queries = [];
@@ -99,7 +101,7 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
       return d.promise;
     }
 
-    var allQueryPromise = [this.performTimeSeriesQuery(queries, start, end, maxDataPoints, minDesiredQuantization)];
+    var allQueryPromise = [this.performTimeSeriesQuery(queries, this.start, this.end, maxDataPoints, minDesiredQuantization)];
     //TODO: fix list (should not be a list)
 
     return $q.all(allQueryPromise).then(function(allResponse) {
@@ -143,17 +145,25 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
   };
 
   this.performSuggestQuery = function(query) {
-    //var url = '/api/v1/metrics/dimensions/suggest/key';
     var url = '/api/v1/metrics/suggest/autocomplete';
     var data = {
       query: query,
-      pos: query.length
-      //dimensions: []
+      pos: query.length,
+      queryStartTime: this.start,
+      queryEndTime: this.end
     };
     return this._request('POST', url, data).then(function(result) {
-      return _.map(result.data.suggestions, function (suggestion) {
-          return suggestion.text;
+      var suggestionsList = [];
+      _.each(result.data.suggestions, function(suggestion){
+        _.each(suggestion.items, function(item){
+          if (suggestion.sectionType==="operators"){
+            suggestionsList.push(item.docId.substring(item.docId.indexOf(":")+1));
+          } else {
+            suggestionsList.push(item.replacement.text);
+          }
+        });
       });
+      return suggestionsList;
     });
   };
 
@@ -259,6 +269,6 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
     if (_.isString(date)) {
       date = dateMath.parse(date, roundUp);
     }
-    return Math.ceil(date.valueOf() / 1000);
+    return Math.ceil(date.valueOf());
   };
 }
