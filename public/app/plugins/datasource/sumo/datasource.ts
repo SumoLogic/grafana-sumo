@@ -152,11 +152,7 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
       var suggestionsList = [];
       _.each(result.data.suggestions, function(suggestion){
         _.each(suggestion.items, function(item){
-          if (suggestion.sectionType==="operators"){
-            suggestionsList.push(item.docId.substring(item.docId.indexOf(":")+1));
-          } else {
             suggestionsList.push(item.replacement.text);
-          }
         });
       });
       return suggestionsList;

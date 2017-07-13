@@ -8,6 +8,7 @@ class SumoQueryCtrl extends QueryCtrl {
   static templateUrl = 'partials/query.editor.html';
   oldTarget: any;
   suggestMetrics: any;
+  savedCallback: any;
 
   /** @ngInject */
   constructor($scope, $injector, private templateSrv) {
@@ -18,15 +19,18 @@ class SumoQueryCtrl extends QueryCtrl {
     target.intervalFactor = 1;
     $scope.$on('typeahead-updated', () => {
       this.$scope.$apply(() => {
-        this.refreshMetricData();
       });
     });
 
-    // called from typeahead so need this
-    // here in order to ensure this ref
+    // called from typeahead, so needed this here in order to ensure this ref
     this.suggestMetrics = (query, callback) => {
+      var cb;
+      if (callback!==undefined){
+        this.savedCallback = callback;
+      }
+      cb = this.savedCallback;
       this.datasource.performSuggestQuery(query)
-        .then(callback);
+        .then(cb);
     };
   }
 
