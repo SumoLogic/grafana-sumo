@@ -1,0 +1,16 @@
+<section class="grafana-metric-options gf-form-group">
+  <div class="gf-form-inline">
+    <div class="gf-form">
+      <label class="gf-form-label width-8">Resolution</label>
+      <input type="text" class="gf-form-input max-width-5" ng-model="ctrl.panelCtrl.panel.interval"
+             data-placement="right"
+             spellcheck='false'
+             placeholder="{{ctrl.panelCtrl.interval}}"
+             data-min-length=0 data-items=100
+             ng-model-onblur ng-change="ctrl.panelCtrl.refresh()"/>
+      <info-popover mode="right-absolute">
+        Leave blank for auto handling based on time range and panel width.
+      </info-popover>
+    </div>
+  </div>
+</section>

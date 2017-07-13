@@ -1,36 +1,9 @@
+
 <query-editor-row query-ctrl="ctrl" can-collapse="false">
 	<div class="gf-form-inline">
 		<div class="gf-form gf-form--grow">
 			<label class="gf-form-label width-8">Query</label>
-			<input type="text" class="gf-form-input" ng-model="ctrl.target.expr" bs-typeahead="ctrl.suggestMetrics" ng-keyup="ctrl.getCursorPos($event)" spellcheck='false' placeholder="query expression" data-min-length=0 data-items=100 ng-model-onblur ng-change="ctrl.refreshMetricData()">
+			<input type="text" class="gf-form-input" ng-model="ctrl.target.expr" bs-typeahead="ctrl.suggestMetrics" spellcheck='false' placeholder="query expression" data-min-length=0 data-items=100 ng-model-onblur ng-change="ctrl.refreshMetricData()">
 		</div>
 	</div>
-
-	<div class="gf-form-inline">
-		<div class="gf-form max-width-26">
-			<label class="gf-form-label width-8">Legend format</label>
-			<input type="text" class="gf-form-input" ng-model="ctrl.target.legendFormat"
-			spellcheck='false' placeholder="legend format" data-min-length=0 data-items=1000
-			ng-model-onblur ng-change="ctrl.refreshMetricData()">
-			</input>
-		</div>
-		<div class="gf-form">
-			<label class="gf-form-label width-8">Resolution</label>
-			<input type="text" class="gf-form-input max-width-5" ng-model="ctrl.target.interval"
-					   data-placement="right"
-			       spellcheck='false'
-			       placeholder="{{ctrl.panelCtrl.interval}}"
-			       data-min-length=0 data-items=100
-			       ng-model-onblur
-			       ng-change="ctrl.refreshMetricData()"/>
-			<info-popover mode="right-absolute">
-				Leave blank for auto handling based on time range and panel width
-			</info-popover>
-		</div>
-
-		<div class="gf-form gf-form--grow">
-			<div class="gf-form-label gf-form-label--grow"></div>
-		</div>
-	</div>
-
 </query-editor-row>

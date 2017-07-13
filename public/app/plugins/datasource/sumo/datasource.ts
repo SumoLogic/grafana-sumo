@@ -71,7 +71,7 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
     this.start = this.getTime(options.range.from, false);
     this.end = this.getTime(options.range.to, true);
     var maxDataPoints = options.maxDataPoints;
-    var minDesiredQuantization = Infinity;
+    this.desiredQuantization = this.calculateInterval(options.interval);
     var queries = [];
     var activeTargets = [];
 
@@ -87,10 +87,6 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
       var query: any = {};
       query.expr = templateSrv.replace(target.expr, options.scopedVars, self.interpolateQueryExpr);
       query.requestId = options.panelId + target.refId;
-
-      var interval = templateSrv.replace(target.interval, options.scopedVars) || options.interval;
-      interval = this.calculateInterval(interval);
-      minDesiredQuantization = minDesiredQuantization > interval? interval: minDesiredQuantization;
       queries.push(query);
     });
 
@@ -101,7 +97,7 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
       return d.promise;
     }
 
-    var allQueryPromise = [this.performTimeSeriesQuery(queries, this.start, this.end, maxDataPoints, minDesiredQuantization)];
+    var allQueryPromise = [this.performTimeSeriesQuery(queries, this.start, this.end, maxDataPoints, this.desiredQuantization)];
     //TODO: fix list (should not be a list)
 
     return $q.all(allQueryPromise).then(function(allResponse) {
@@ -120,7 +116,7 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
   };
 
   // Done
-  this.performTimeSeriesQuery = function(queries, start, end, maxDataPoints, minDesiredQuantization) {
+  this.performTimeSeriesQuery = function(queries, start, end, maxDataPoints, desiredQuantization) {
     if (start > end) {
       throw { message: 'Invalid time range' };
     }
@@ -138,8 +134,8 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
       'endTime': end,
       "maxDataPoints": maxDataPoints,
     };
-    if (minDesiredQuantization !== Infinity){
-      data['desiredQuantizationInSecs'] = minDesiredQuantization;
+    if (desiredQuantization){
+      data['desiredQuantizationInSecs'] = desiredQuantization;
     }
     return this._request('POST', url, data);
   };

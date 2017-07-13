@@ -7,7 +7,6 @@ import {QueryCtrl} from 'app/plugins/sdk';
 class SumoQueryCtrl extends QueryCtrl {
   static templateUrl = 'partials/query.editor.html';
   oldTarget: any;
-  metric: any;
   suggestMetrics: any;
 
   /** @ngInject */
@@ -19,8 +18,6 @@ class SumoQueryCtrl extends QueryCtrl {
     target.intervalFactor = 1;
     $scope.$on('typeahead-updated', () => {
       this.$scope.$apply(() => {
-
-        //this.target.expr += this.target.metric;
         this.refreshMetricData();
       });
     });
@@ -39,6 +36,7 @@ class SumoQueryCtrl extends QueryCtrl {
       this.panelCtrl.refresh();
     }
   }
+
 }
 
 export {SumoQueryCtrl};
