@@ -36,7 +36,6 @@ class SumoQueryCtrl extends QueryCtrl {
       this.panelCtrl.refresh();
     }
   }
-
 }
 
 export {SumoQueryCtrl};
