@@ -1,12 +1,9 @@
 ///<reference path="../../../headers/common.d.ts" />
 
-import angular from 'angular';
-import _ from 'lodash';
 import {QueryCtrl} from 'app/plugins/sdk';
 
 class SumoQueryCtrl extends QueryCtrl {
   static templateUrl = 'partials/query.editor.html';
-  oldTarget: any;
   suggestMetrics: any;
   savedCallback: any;
 
@@ -32,13 +29,6 @@ class SumoQueryCtrl extends QueryCtrl {
       this.datasource.performSuggestQuery(query)
         .then(cb);
     };
-  }
-
-  refreshMetricData() {
-    if (!_.isEqual(this.oldTarget, this.target)) {
-      this.oldTarget = angular.copy(this.target);
-      this.panelCtrl.refresh();
-    }
   }
 }
 

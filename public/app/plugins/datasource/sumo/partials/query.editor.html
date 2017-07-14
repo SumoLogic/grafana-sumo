@@ -2,11 +2,8 @@
 <query-editor-row query-ctrl="ctrl" can-collapse="false">
     <div class="gf-form-inline">
       <div class="gf-form gf-form--grow">
-        <label class="gf-form-label width-8">Query</label>
-        <input type="text" class="gf-form-input" ng-model="ctrl.target.expr" bs-typeahead="ctrl.suggestMetrics" spellcheck='false' placeholder="query expression" data-min-length=0 data-items=100  ng-change="ctrl.suggestMetrics(ctrl.target.expr)">
-      </div>
-      <div class="gf-form max-width-8">
-        <button class="gf-form-input" ng-click="ctrl.refreshMetricData()">Run Query</button>
+        <label class="gf-form-label width-6">Query</label>
+        <input type="text" class="gf-form-input" ng-model="ctrl.target.expr" bs-typeahead="ctrl.suggestMetrics" ng-keyup="ctrl.runQuery($event)" spellcheck='false' placeholder="query expression" data-min-length=0 data-items=100  ng-change="ctrl.suggestMetrics(ctrl.target.expr)">
       </div>
     </div>
 </query-editor-row>

@@ -22,7 +22,6 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
   this.start;
   this.end;
 
-  // Done
   this._request = function(method, url, data) {
     var options: any = {
       url: this.url + url,
@@ -98,7 +97,6 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
     }
 
     var allQueryPromise = [this.performTimeSeriesQuery(queries, this.start, this.end, maxDataPoints, this.desiredQuantization)];
-    //TODO: fix list (should not be a list)
 
     return $q.all(allQueryPromise).then(function(allResponse) {
       var result = [];
@@ -115,7 +113,6 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
     });
   };
 
-  // Done
   this.performTimeSeriesQuery = function(queries, start, end, maxDataPoints, desiredQuantization) {
     if (start > end) {
       throw { message: 'Invalid time range' };
@@ -186,7 +183,6 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
     if (sec < 1) {
       sec = 1;
     }
-
     return Math.ceil(sec);
   };
 
