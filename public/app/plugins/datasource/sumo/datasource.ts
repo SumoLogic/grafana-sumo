@@ -194,10 +194,9 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
       var response = responses[i];
 
       if (response.messageType) {
-        console.log("SumoMetricsDatasource.query -  " +
-          "WARN: message: " + response.message + ", type: " + response.messageType +
-          " for response[" + i + "]");
-        continue; // TODO: How to display warning?
+        throw { message: "SumoMetricsDatasource.query -  " +
+        "WARN: message: " + response.message + ", type: " + response.messageType +
+        " for response[" + i + "]"};
       }
       for (var j = 0; j < response.results.length; j++) {
         var result = response.results[j];
