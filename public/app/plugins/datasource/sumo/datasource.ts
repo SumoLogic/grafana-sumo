@@ -103,7 +103,8 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
       _.each(allResponse, function(response, index) {
         if (response.status === 'error') {
           self.lastErrors.query = response.error;
-          throw response.error;
+        } else {
+          result = self.transformMetricData(response.data.response);
         }
         delete self.lastErrors.query;
         result = self.transformMetricData(response.data.response);
@@ -193,40 +194,37 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
     for (var i = 0; i < responses.length; i++) {
       var response = responses[i];
 
-      if (response.messageType) {
-        throw { message: "SumoMetricsDatasource.query -  " +
-        "WARN: message: " + response.message + ", type: " + response.messageType +
-        " for response[" + i + "]"};
-      }
-      for (var j = 0; j < response.results.length; j++) {
-        var result = response.results[j];
+      if (!response.messageType) {
+        for (var j = 0; j < response.results.length; j++) {
+          var result = response.results[j];
 
-        // Synthesize the "target" - the "metric name" basically.
-        var target = "";
-        var dimensions = result.metric.dimensions;
-        for (var k = 0; k < dimensions.length; k++) {
-          var dimension = dimensions[k];
-          target += dimension.key + "=" + dimension.value;
-          if (k !== dimensions.length - 1) {
-            target += ",";
+          // Synthesize the "target" - the "metric name" basically.
+          var target = "";
+          var dimensions = result.metric.dimensions;
+          for (var k = 0; k < dimensions.length; k++) {
+            var dimension = dimensions[k];
+            target += dimension.key + "=" + dimension.value;
+            if (k !== dimensions.length - 1) {
+              target += ",";
+            }
           }
-        }
 
-        // Create Grafana-suitable datapoints.
-        var values = result.datapoints.value;
-        var timestamps = result.datapoints.timestamp;
-        var length = Math.min(values.length, timestamps.length);
-        var datapoints = [];
-        for (var l = 0; l < length; l++) {
-          var value = values[l];
-          var valueParsed = parseFloat(value);
-          var timestamp = timestamps[l];
-          var timestampParsed = parseFloat(timestamp);
-          datapoints.push([valueParsed, timestampParsed]);
-        }
+          // Create Grafana-suitable datapoints.
+          var values = result.datapoints.value;
+          var timestamps = result.datapoints.timestamp;
+          var length = Math.min(values.length, timestamps.length);
+          var datapoints = [];
+          for (var l = 0; l < length; l++) {
+            var value = values[l];
+            var valueParsed = parseFloat(value);
+            var timestamp = timestamps[l];
+            var timestampParsed = parseFloat(timestamp);
+            datapoints.push([valueParsed, timestampParsed]);
+          }
 
-        // Add the series.
-        seriesList.push({target: target, datapoints: datapoints});
+          // Add the series.
+          seriesList.push({target: target, datapoints: datapoints});
+        }
       }
     }
 
