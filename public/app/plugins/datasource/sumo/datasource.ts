@@ -3,7 +3,6 @@
 import angular from 'angular';
 import _ from 'lodash';
 import moment from 'moment';
-
 import * as dateMath from 'app/core/utils/datemath';
 import MetricFindQuery from './metric_find_query';
 
@@ -21,6 +20,8 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
   this.lastErrors = {};
   this.start;
   this.end;
+  this.error = '';
+  this.quantizationDefined = false;
 
   this._request = function(method, url, data) {
     var options: any = {
@@ -103,6 +104,7 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
       _.each(allResponse, function(response, index) {
         if (response.status === 'error') {
           self.lastErrors.query = response.error;
+          throw response.error;
         } else {
           result = self.transformMetricData(response.data.response);
         }
@@ -132,7 +134,7 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
       'endTime': end,
       "maxDataPoints": maxDataPoints,
     };
-    if (desiredQuantization){
+    if (this.quantizationDefined && desiredQuantization){
       data['desiredQuantizationInSecs'] = desiredQuantization;
     }
     return this._request('POST', url, data);
@@ -190,6 +192,7 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
   this.transformMetricData = function(responses) {
 
     var seriesList = [];
+    var warning;
 
     for (var i = 0; i < responses.length; i++) {
       var response = responses[i];
@@ -225,7 +228,12 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
           // Add the series.
           seriesList.push({target: target, datapoints: datapoints});
         }
+      } else {
+          warning = "Warning: " + response.message;
       }
+    }
+    if (warning) {
+      this.error = warning;
     }
 
     return seriesList;
@@ -255,5 +263,13 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
       date = dateMath.parse(date, roundUp);
     }
     return Math.ceil(date.valueOf());
+  };
+
+  this.changeQuantization = function() {
+    this.quantizationDefined = true;
+  };
+
+  this.clearError = function() {
+    this.error = "";
   };
 }
