@@ -8,34 +8,79 @@ function (_) {
     this.datasource = datasource;
     this.query = query;
     this.range = timeSrv.timeRange();
+
+    console.log(">>>> MetricsFindQuery() start");
+    console.log(datasource);
+    console.log(query);
+    console.log(timeSrv);
   }
 
   MetricFindQuery.prototype.process = function() {
-    var label_values_regex = /^label_values\((?:(.+),\s*)?([a-zA-Z_][a-zA-Z0-9_]+)\)$/;
-    var metric_names_regex = /^metrics\((.+)\)$/;
-    var query_result_regex = /^query_result\((.+)\)$/;
+    console.log(">>>> MetricsFindQuery.process()");
 
-    var label_values_query = this.query.match(label_values_regex);
-    if (label_values_query) {
-      if (label_values_query[1]) {
-        return this.labelValuesQuery(label_values_query[2], label_values_query[1]);
-      } else {
-        return this.labelValuesQuery(label_values_query[2], null);
-      }
+    var self = this;
+
+    var split = this.query.split("|");
+    var type = split[0];
+    var parameter = split[1];
+    var actualQuery = split[2];
+    console.log(">>>> MetricsFindQuery.process() type " + type +
+      " parameter " + parameter + " actual query " + actualQuery);
+
+    if (type === "metaTags") {
+      var url = '/api/v1/metrics/meta/catalog/query';
+      var data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
+      return this.datasource._request('POST', url, data)
+        .then(function(result) {
+          // console.log(">>>> MetricsFindQuery.process() - Meta tags result");
+          // console.log(result);
+          var resultToReturn = _.map(result.data.results, function(resultEntry) {
+            // console.log(">>> Meta tags result entry ");
+            // console.log(resultEntry);
+            var metaTags = resultEntry.metaTags;
+            // console.log(">>> Meta tags");
+            // console.log(metaTags);
+            var metaTagCount = metaTags.length;
+            var metaTag = null;
+            for (var metaTagIndex = 0; metaTagIndex < metaTagCount; metaTagIndex++) {
+              metaTag = metaTags[metaTagIndex];
+              if (metaTag.key == parameter) {
+                break;
+              }
+            }
+            // console.log(">>> Meta tag");
+            // console.log(metaTag);
+            return {
+              text: metaTag.value,
+              expandable: true
+            };
+          });
+          console.log(">>>> MetricsFindQuery.process() - Meta tags result");
+          console.log(resultToReturn);
+          return resultToReturn;
+        });
+    } else if (type === "metrics") {
+      var url = '/api/v1/metrics/meta/catalog/query';
+      var data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
+      return this.datasource._request('POST', url, data)
+        .then(function(result) {
+          console.log(">>>> MetricsFindQuery.process() - Metrics result");
+          console.log(result);
+          var resultToReturn = _.map(result.data.results, function(resultEntry) {
+            // console.log(">>> Metrics result entry ");
+            // console.log(resultEntry);
+            return {
+              text: resultEntry.name,
+              expandable: true
+            };
+          });
+          console.log(">>>> MetricsFindQuery.process() - Meta tags result");
+          console.log(resultToReturn);
+          return resultToReturn;
+        });
     }
 
-    var metric_names_query = this.query.match(metric_names_regex);
-    if (metric_names_query) {
-      return this.metricNameQuery(metric_names_query[1]);
-    }
-
-    var query_result_query = this.query.match(query_result_regex);
-    if (query_result_query) {
-      return this.queryResultQuery(query_result_query[1]);
-    }
-
-    // if query contains full metric name, return metric name and label list
-    return this.metricNameAndLabelsQuery(this.query);
+    return null;
   };
 
   MetricFindQuery.prototype.labelValuesQuery = function(label, metric) {
