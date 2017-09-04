@@ -18,8 +18,6 @@ function (_) {
   MetricFindQuery.prototype.process = function() {
     // console.log(">>>> MetricsFindQuery.process()");
 
-    var self = this;
-
     var split = this.query.split("|");
     var type = split[0];
     var parameter = split[1];
@@ -27,9 +25,11 @@ function (_) {
     // console.log(">>>> MetricsFindQuery.process() type " + type +
     //   " parameter " + parameter + " actual query " + actualQuery);
 
+    var url = "";
+    var data = {};
     if (type === "metaTags") {
-      var url = '/api/v1/metrics/meta/catalog/query';
-      var data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
+      url = '/api/v1/metrics/meta/catalog/query';
+      data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
       return this.datasource._request('POST', url, data)
         .then(function(result) {
           // console.log(">>>> MetricsFindQuery.process() - Meta tags result");
@@ -44,7 +44,7 @@ function (_) {
             var metaTag = null;
             for (var metaTagIndex = 0; metaTagIndex < metaTagCount; metaTagIndex++) {
               metaTag = metaTags[metaTagIndex];
-              if (metaTag.key == parameter) {
+              if (metaTag.key === parameter) {
                 break;
               }
             }
@@ -60,8 +60,8 @@ function (_) {
           return resultToReturn;
         });
     } else if (type === "metrics") {
-      var url = '/api/v1/metrics/meta/catalog/query';
-      var data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
+      url = '/api/v1/metrics/meta/catalog/query';
+      data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
       return this.datasource._request('POST', url, data)
         .then(function(result) {
           // console.log(">>>> MetricsFindQuery.process() - Metrics result");
