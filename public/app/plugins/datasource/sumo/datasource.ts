@@ -22,6 +22,7 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
   this.end;
   this.error = '';
   this.quantizationDefined = false;
+  this.currentTemplateVars = {};
 
   this._request = function(method, url, data) {
     var options: any = {
@@ -48,6 +49,7 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
   }
 
   this.interpolateQueryExpr = function(value, variable, defaultFormatFn) {
+
     // if no multi or include all do not regexEscape. Is this needed?
     if (!variable.multi && !variable.includeAll) {
       return value;
@@ -67,10 +69,21 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
 
   // Called once per panel (graph)
   this.query = function(options) {
+
     var self = this;
     this.start = this.getTime(options.range.from, false);
     this.end = this.getTime(options.range.to, true);
+
+
+    // This gives us the upper limit of data points to be returned
+    // by the Sumo backend and seems to be based on the width in
+    // pixels of the panel.
     var maxDataPoints = options.maxDataPoints;
+
+    // Empirically, it seems that we get better looking graphs
+    // when requesting some fraction of the indicated width...
+    var requestedDataPoints = Math.round(maxDataPoints / 6);
+
     this.desiredQuantization = this.calculateInterval(options.interval);
     var queries = [];
     var activeTargets = [];
@@ -97,7 +110,8 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
       return d.promise;
     }
 
-    var allQueryPromise = [this.performTimeSeriesQuery(queries, this.start, this.end, maxDataPoints, this.desiredQuantization)];
+    var allQueryPromise = [this.performTimeSeriesQuery(queries, this.start, this.end,
+      maxDataPoints, requestedDataPoints, this.desiredQuantization)];
 
     return $q.all(allQueryPromise).then(function(allResponse) {
       var result = [];
@@ -116,7 +130,8 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
     });
   };
 
-  this.performTimeSeriesQuery = function(queries, start, end, maxDataPoints, desiredQuantization) {
+  this.performTimeSeriesQuery = function(queries, start, end,
+                                         maxDataPoints, requestedDataPoints, desiredQuantization) {
     if (start > end) {
       throw { message: 'Invalid time range' };
     }
@@ -127,12 +142,13 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
           'rowId': queries[i].requestId,
       });
     }
-    var url = '/api/v1/metrics/results';
+    var url = '/api/v1/metrics/annotated/results';
     var data = {
       'query': queryList,
       'startTime': start,
       'endTime': end,
-      "maxDataPoints": maxDataPoints,
+      'maxDataPoints': maxDataPoints,
+      'requestedDataPoints': requestedDataPoints
     };
     if (this.quantizationDefined && desiredQuantization){
       data['desiredQuantizationInSecs'] = desiredQuantization;
@@ -160,15 +176,33 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
   };
 
   this.metricFindQuery = function(query) {
+
+    // Bail out immediately if the caller didn't specify a query.
     if (!query) { return $q.when([]); }
 
+    // With the help of templateSrv, we are going to first of figure
+    // out the current values of all template variables.
+    var templateVariables = {};
+    _.forEach(_.clone(templateSrv.variables), function(variable) {
+      var name = variable.name;
+      var value = variable.current.value;
+
+      // Prepare the an object for this template variable in the map
+      // following the same structure as options.scopedVars from
+      // this.query() so we can then in the next step simply pass
+      // on the map to templateSrv.replace()
+      templateVariables[name] = { 'selelected': true, 'text': value, 'value': value };
+    });
+
+    // Resolve template variables in the query to their curren value
     var interpolated;
     try {
-      interpolated = templateSrv.replace(query, {}, this.interpolateQueryExpr);
+      interpolated = templateSrv.replace(query, templateVariables, this.interpolateQueryExpr);
     } catch (err) {
       return $q.reject(err);
     }
 
+    // Let the metrics find query implementation do its thing.
     var metricFindQuery = new MetricFindQuery(this, interpolated, timeSrv);
     return metricFindQuery.process();
   };
@@ -204,11 +238,15 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
           // Synthesize the "target" - the "metric name" basically.
           var target = "";
           var dimensions = result.metric.dimensions;
+          var firstAdded = false;
           for (var k = 0; k < dimensions.length; k++) {
             var dimension = dimensions[k];
-            target += dimension.key + "=" + dimension.value;
-            if (k !== dimensions.length - 1) {
-              target += ",";
+            if (dimension.legend === true) {
+              if (firstAdded) {
+                target += ",";
+              }
+              target += dimension.key + "=" + dimension.value;
+              firstAdded = true;
             }
           }
 

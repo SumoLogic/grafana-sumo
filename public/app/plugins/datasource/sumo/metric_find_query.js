@@ -9,14 +9,14 @@ function (_) {
     this.query = query;
     this.range = timeSrv.timeRange();
 
-    console.log(">>>> MetricsFindQuery() start");
-    console.log(datasource);
-    console.log(query);
-    console.log(timeSrv);
+    // console.log(">>>> MetricsFindQuery() start");
+    // console.log(datasource);
+    // console.log(query);
+    // console.log(timeSrv);
   }
 
   MetricFindQuery.prototype.process = function() {
-    console.log(">>>> MetricsFindQuery.process()");
+    // console.log(">>>> MetricsFindQuery.process()");
 
     var self = this;
 
@@ -24,8 +24,8 @@ function (_) {
     var type = split[0];
     var parameter = split[1];
     var actualQuery = split[2];
-    console.log(">>>> MetricsFindQuery.process() type " + type +
-      " parameter " + parameter + " actual query " + actualQuery);
+    // console.log(">>>> MetricsFindQuery.process() type " + type +
+    //   " parameter " + parameter + " actual query " + actualQuery);
 
     if (type === "metaTags") {
       var url = '/api/v1/metrics/meta/catalog/query';
@@ -55,8 +55,8 @@ function (_) {
               expandable: true
             };
           });
-          console.log(">>>> MetricsFindQuery.process() - Meta tags result");
-          console.log(resultToReturn);
+          // console.log(">>>> MetricsFindQuery.process() - Meta tags result");
+          // console.log(resultToReturn);
           return resultToReturn;
         });
     } else if (type === "metrics") {
@@ -64,8 +64,8 @@ function (_) {
       var data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
       return this.datasource._request('POST', url, data)
         .then(function(result) {
-          console.log(">>>> MetricsFindQuery.process() - Metrics result");
-          console.log(result);
+          // console.log(">>>> MetricsFindQuery.process() - Metrics result");
+          // console.log(result);
           var resultToReturn = _.map(result.data.results, function(resultEntry) {
             // console.log(">>> Metrics result entry ");
             // console.log(resultEntry);
@@ -74,8 +74,8 @@ function (_) {
               expandable: true
             };
           });
-          console.log(">>>> MetricsFindQuery.process() - Meta tags result");
-          console.log(resultToReturn);
+          // console.log(">>>> MetricsFindQuery.process() - Meta tags result");
+          // console.log(resultToReturn);
           return resultToReturn;
         });
     }
