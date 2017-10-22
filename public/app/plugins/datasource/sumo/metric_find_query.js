@@ -31,10 +31,10 @@ function (_) {
       url = '/api/v1/metrics/meta/catalog/query';
       data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
       return this.datasource._request('POST', url, data)
-        .then(function(result) {
+        .then(function (result) {
           // console.log(">>>> MetricsFindQuery.process() - Meta tags result");
           // console.log(result);
-          var resultToReturn = _.map(result.data.results, function(resultEntry) {
+          var metaTagValues = _.map(result.data.results, function (resultEntry) {
             // console.log(">>> Meta tags result entry ");
             // console.log(resultEntry);
             var metaTags = resultEntry.metaTags;
@@ -55,6 +55,7 @@ function (_) {
               expandable: true
             };
           });
+          var resultToReturn = _.uniqBy(metaTagValues, 'text');
           // console.log(">>>> MetricsFindQuery.process() - Meta tags result");
           // console.log(resultToReturn);
           return resultToReturn;
@@ -63,20 +64,38 @@ function (_) {
       url = '/api/v1/metrics/meta/catalog/query';
       data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
       return this.datasource._request('POST', url, data)
-        .then(function(result) {
+        .then(function (result) {
           // console.log(">>>> MetricsFindQuery.process() - Metrics result");
           // console.log(result);
-          var resultToReturn = _.map(result.data.results, function(resultEntry) {
-            // console.log(">>> Metrics result entry ");
+          var metricNames = _.map(result.data.results, function (resultEntry) {
+            // console.log(">>> Metric result entry ");
             // console.log(resultEntry);
+            var name = resultEntry.name;
+            // console.log(">>> Name");
+            // console.log(name);
             return {
-              text: resultEntry.name,
+              text: name,
               expandable: true
             };
           });
+          var resultToReturn = _.uniqBy(metricNames, 'text');
           // console.log(">>>> MetricsFindQuery.process() - Meta tags result");
           // console.log(resultToReturn);
           return resultToReturn;
+        });
+    } else if (type === "x-tokens") {
+      url = '/api/v1/metrics/suggest/autocomplete';
+      data = '{"queryId":"1","query":"' + actualQuery + '","pos":0,"apiVersion":"0.2.0",' +
+        '"requestedSectionsAndCounts":{"tokens":1000}}';
+      return this.datasource._request('POST', url, data)
+        .then(function (result) {
+          var tokens = _.map(result.data.suggestions[0].items, function (suggestion) {
+            return {
+              text: suggestion.display,
+              expandable: true
+            };
+          });
+          return tokens;
         });
     }
 

@@ -1,0 +1,47 @@
+<!--<query-editor-row query-ctrl="ctrl" can-collapse="false" has-text-edit-mode="true">-->
+
+	<!--<div class="gf-form" ng-show="ctrl.target.textEditor">-->
+    <!--<label class="gf-form-label width-6">Query</label>-->
+    <!--<input type="text" class="gf-form-input" ng-model="ctrl.target.target" spellcheck="false" ng-blur="ctrl.refresh()">-->
+    <!--</input>-->
+  <!--</div>-->
+
+  <!--<div ng-hide="ctrl.target.textEditor">-->
+    <!--<div class="gf-form-inline">-->
+      <!--<label class="gf-form-label width-6">Metric</label>-->
+
+      <!--<div ng-repeat="segment in ctrl.segments" role="menuitem" class="gf-form">-->
+        <!--<metric-segment segment="segment" get-options="ctrl.getAltSegments($index)"-->
+                        <!--on-change="ctrl.segmentValueChanged(segment, $index)"></metric-segment>-->
+      <!--</div>-->
+
+      <!--&lt;!&ndash;<metric-segment segment="ctrl.metric" get-options="ctrl.getMetrics()"&ndash;&gt;-->
+                      <!--&lt;!&ndash;on-change="ctrl.metricValueChanged(ctrl.metric)">&ndash;&gt;-->
+      <!--&lt;!&ndash;</metric-segment>&ndash;&gt;-->
+
+
+      <!--&lt;!&ndash;<div ng-repeat="segment in ctrl.segments" role="menuitem" class="gf-form">&ndash;&gt;-->
+        <!--&lt;!&ndash;<metric-segment segment="segment" get-options="ctrl.getAltSegments($index)"&ndash;&gt;-->
+                        <!--&lt;!&ndash;on-change="ctrl.segmentValueChanged(segment, $index)"></metric-segment>&ndash;&gt;-->
+      <!--&lt;!&ndash;</div>&ndash;&gt;-->
+
+      <!--&lt;!&ndash;<div ng-repeat="func in ctrl.functions" class="gf-form">&ndash;&gt;-->
+        <!--&lt;!&ndash;<span graphite-func-editor class="gf-form-label query-part"></span>&ndash;&gt;-->
+      <!--&lt;!&ndash;</div>&ndash;&gt;-->
+
+      <!--<div class="gf-form gf-form&#45;&#45;grow">-->
+        <!--<div class="gf-form-label gf-form-label&#45;&#45;grow"></div>-->
+      <!--</div>-->
+    <!--</div>-->
+  <!--</div>-->
+
+  <!--&lt;!&ndash;<div class="gf-form-inline">&ndash;&gt;-->
+    <!--&lt;!&ndash;<div class="gf-form gf-form&#45;&#45;grow">&ndash;&gt;-->
+      <!--&lt;!&ndash;<label class="gf-form-label width-6">Query</label>&ndash;&gt;-->
+      <!--&lt;!&ndash;<input type="text" class="gf-form-input" ng-model="ctrl.target.expr" bs-typeahead="ctrl.suggestMetrics"&ndash;&gt;-->
+             <!--&lt;!&ndash;spellcheck='false' placeholder="query expression" data-min-length=0 data-items=100&ndash;&gt;-->
+             <!--&lt;!&ndash;ng-change="ctrl.suggestMetrics(ctrl.target.expr)">&ndash;&gt;-->
+    <!--&lt;!&ndash;</div>&ndash;&gt;-->
+  <!--&lt;!&ndash;</div>&ndash;&gt;-->
+
+<!--</query-editor-row>-->

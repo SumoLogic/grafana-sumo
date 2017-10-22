@@ -194,7 +194,7 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
       templateVariables[name] = { 'selelected': true, 'text': value, 'value': value };
     });
 
-    // Resolve template variables in the query to their curren value
+    // Resolve template variables in the query to their current value
     var interpolated;
     try {
       interpolated = templateSrv.replace(query, templateVariables, this.interpolateQueryExpr);
@@ -202,9 +202,73 @@ export function SumoDatasource(instanceSettings, $q, backendSrv, templateSrv, ti
       return $q.reject(err);
     }
 
-    // Let the metrics find query implementation do its thing.
-    var metricFindQuery = new MetricFindQuery(this, interpolated, timeSrv);
-    return metricFindQuery.process();
+    if (interpolated.startsWith("metaTags|")) {
+      var split = interpolated.split("|");
+      var type = split[0];
+      var parameter = split[1];
+      var actualQuery = split[2];
+
+      var url = '/api/v1/metrics/meta/catalog/query';
+      var data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
+      return this._request('POST', url, data)
+        .then(function (result) {
+          var metaTagValues = _.map(result.data.results, function (resultEntry) {
+            var metaTags = resultEntry.metaTags;
+            var metaTagCount = metaTags.length;
+            var metaTag = null;
+            for (var metaTagIndex = 0; metaTagIndex < metaTagCount; metaTagIndex++) {
+              metaTag = metaTags[metaTagIndex];
+              if (metaTag.key === parameter) {
+                break;
+              }
+            }
+            return {
+              text: metaTag.value,
+              expandable: true
+            };
+          });
+          var resultToReturn = _.uniqBy(metaTagValues, 'text');
+          return resultToReturn;
+        });
+    } else if (interpolated.startsWith("metrics|")) {
+      var split = interpolated.split("|");
+      var actualQuery = split[1];
+
+      var url = '/api/v1/metrics/meta/catalog/query';
+      var data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
+      return this._request('POST', url, data)
+        .then(function (result) {
+          var metricNames = _.map(result.data.results, function (resultEntry) {
+            var name = resultEntry.name;
+            return {
+              text: name,
+              expandable: true
+            };
+          });
+          var resultToReturn = _.uniqBy(metricNames, 'text');
+          return resultToReturn;
+        });
+    } else if (interpolated.startsWith("x-tokens|")) {
+      var split = interpolated.split("|");
+      var type = split[0];
+      var actualQuery = split[1];
+
+      var url = '/api/v1/metrics/suggest/autocomplete';
+      var data = '{"queryId":"1","query":"' + actualQuery + '","pos":0,"apiVersion":"0.2.0",' +
+        '"requestedSectionsAndCounts":{"tokens":1000}}';
+      return this._request('POST', url, data)
+        .then(function (result) {
+          var tokens = _.map(result.data.suggestions[0].items, function (suggestion) {
+            return {
+              text: suggestion.display,
+            };
+          });
+          return tokens;
+        });
+    }
+
+    // Unknown query type - error.
+    return $q.reject("Unknown metric find query: " + query);
   };
 
   this.testDatasource = function() {
