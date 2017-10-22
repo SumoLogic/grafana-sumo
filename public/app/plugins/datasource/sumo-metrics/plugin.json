@@ -1,23 +1,43 @@
 {
   "type": "datasource",
   "name": "Sumo Logic Metrics",
-  "id": "sumo",
-
-  "includes": [
-  ],
-
+  "id": "sumo-logic-metrics",
   "metrics": true,
-  "alerting": true,
+  "alerting": false,
   "annotations": false,
-
   "info": {
+    "description": "Sumo Logic Metrics Grafana Plugin",
     "author": {
-      "name": "Grafana Project",
-      "url": "https://grafana.com"
+      "name": "Sumo Logic",
+      "url": "https://www.sumologic.com"
     },
     "logos": {
       "small": "img/sumo_logo.svg",
       "large": "img/sumo_logo.svg"
-    }
+    },
+    "links": [
+      {
+        "name": "Project site",
+        "url": "https://github.com/SumoLogic/sumo-logic-metrics-grafana-plugin"
+      }
+      //      {"name": "Apache License",  "url": "https://github.com/ryantxu/ajax-panel/blob/master/LICENSE"}
+    ],
+    "repository": {
+      "type": "git",
+      "url": "git@github.com:SumoLogic/sumo-logic-metrics-grafana-plugin.git"
+    },
+    "keywords": [
+      "sumo logic",
+      "metrics",
+      "sumo",
+      "logic",
+      "sumologic"
+    ],
+    "version": "%VERSION%",
+    "updated": "%TODAY%"
+  },
+  "dependencies": {
+    "grafanaVersion": "4.4.3",
+    "plugins": []
   }
 }
